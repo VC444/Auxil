@@ -18,7 +18,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements
@@ -35,6 +38,7 @@ public class MapsActivity extends FragmentActivity implements
     private TextView longitude;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    Marker curPosMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -108,15 +112,22 @@ public class MapsActivity extends FragmentActivity implements
     public void onLocationChanged(Location location)
     {
         Log.i(LOG_TAG, location.toString());
-        latitude.setText(Double.toString(location.getLatitude()));
-        longitude.setText(Double.toString(location.getLongitude()));
 
         double tempLat = location.getLatitude();
         double tempLong = location.getLongitude();
 
         // Make a marker
         LatLng curPos = new LatLng(tempLat,tempLong);
-        mMap.addMarker(new MarkerOptions().position(curPos).title("Akshay and Vignesh are here!"));
+        curPosMarker = mMap.addMarker(new MarkerOptions().position(curPos).title("Akshay and Vignesh are here!"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(curPos));
+        // curPosMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.custom_icon));
+
+        if (curPosMarker != null)
+        {
+            mMap.clear();
+        }
+
+        curPosMarker = mMap.addMarker(new MarkerOptions().position(curPos).title("Akshay and Vignesh are here!"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(curPos));
     }
 
