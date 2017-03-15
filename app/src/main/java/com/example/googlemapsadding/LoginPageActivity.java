@@ -34,8 +34,8 @@ public class LoginPageActivity extends Activity  {
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(ed1.getText().toString().equals("AuxilTest") &&
-                        ed2.getText().toString().equals("auxil"))
+                if(ed1.getText().toString().equals("a") &&
+                        ed2.getText().toString().equals("a"))
                 {
                     Toast.makeText(getApplicationContext(),
                             "Redirecting...",Toast.LENGTH_SHORT).show();

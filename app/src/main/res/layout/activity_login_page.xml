@@ -4,23 +4,25 @@
     android:layout_height = "match_parent" android:paddingLeft= "@dimen/activity_horizontal_margin"
     android:paddingRight = "@dimen/activity_horizontal_margin"
     android:paddingTop = "@dimen/activity_vertical_margin"
-    android:paddingBottom = "@dimen/activity_vertical_margin" tools:context = ".LoginPageActivity">
+    android:paddingBottom = "@dimen/activity_vertical_margin" tools:context = ".LoginPageActivity"
+    android:background="@drawable/login">
 
-    <TextView android:text = "Login" android:layout_width="wrap_content"
+    <TextView android:text = "Auxil" android:layout_width="wrap_content"
         android:layout_height = "wrap_content"
+        android:textColor = "#ff7aff24"
         android:id = "@+id/textview"
-        android:textSize = "35dp"
+        android:textSize = "70dp"
         android:layout_alignParentTop = "true"
         android:layout_centerHorizontal = "true" />
 
     <TextView
         android:layout_width = "wrap_content"
         android:layout_height = "wrap_content"
-        android:text = "Auxil"
+        android:text = "Login"
         android:id = "@+id/textView"
         android:layout_below = "@+id/textview"
         android:layout_centerHorizontal = "true"
-        android:textColor = "#ff7aff24"
+        android:textColor = "#d7e283"
         android:textSize = "35dp" />
 
     <EditText
