@@ -118,12 +118,9 @@ public class MapsActivity extends FragmentActivity implements
         double tempLong = location.getLongitude();
 
         // Make a marker
-        LatLng latlng = new LatLng(tempLat,tempLong);
-        MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
-        markerOptions.position(latlng);
-        markerOptions.title("Current Position");
-        curPosMarker = mMap.addMarker(markerOptions); // Add marker with markerOptions options
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+        LatLng curPos = new LatLng(tempLat,tempLong);
+        curPosMarker = mMap.addMarker(new MarkerOptions().position(curPos).title("Akshay and Vignesh are here!"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(curPos));
         // curPosMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.custom_icon));
 
         if (curPosMarker != null)
@@ -131,8 +128,8 @@ public class MapsActivity extends FragmentActivity implements
             mMap.clear();
         }
 
-        curPosMarker = mMap.addMarker(markerOptions);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+        curPosMarker = mMap.addMarker(new MarkerOptions().position(curPos).title("Akshay and Vignesh are here!"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(curPos));
     }
 
     @Override
