@@ -9,7 +9,7 @@
 
     <TextView android:text = "Auxil" android:layout_width="wrap_content"
         android:layout_height = "wrap_content"
-        android:textColor = "#ff7aff24"
+        android:textColor = "#ff7aff25"
         android:id = "@+id/textview"
         android:textSize = "70dp"
         android:layout_alignParentTop = "true"
