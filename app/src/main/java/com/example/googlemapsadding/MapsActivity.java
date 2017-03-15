@@ -88,7 +88,7 @@ public class MapsActivity extends FragmentActivity implements
     {
         mLocationRequest = LocationRequest.create(); // Another way to write a new object
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(3*1000); // Always write in milliseconds
+        mLocationRequest.setInterval(2 * 1000); // Always write in milliseconds
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
@@ -112,19 +112,32 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public void onLocationChanged(Location location)
     {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
         Log.i(LOG_TAG, location.toString());
 
         double tempLat = location.getLatitude();
         double tempLong = location.getLongitude();
 
-        // Make a marker
+         // Make a marker
+
         LatLng latlng = new LatLng(tempLat,tempLong);
         MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
         markerOptions.position(latlng);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         markerOptions.title("Current Position");
         curPosMarker = mMap.addMarker(markerOptions); // Add marker with markerOptions options
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
-        // curPosMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.custom_icon));
 
         if (curPosMarker != null)
         {
