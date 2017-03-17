@@ -2,13 +2,17 @@ package com.example.googlemapsadding;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.Manifest;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -17,6 +21,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -39,6 +44,9 @@ public class MapsActivity extends FragmentActivity implements
     private TextView longitude;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    private static final int MY_PERMISSION_REQUEST_FINE_LOCATION = 101;
+    private static final int MY_PERMISSION_REQUEST_COARSE_LOCATION = 100;
+    private boolean permissionIsGranted = false;
     Marker curPosMarker;
 
     @Override
@@ -59,8 +67,12 @@ public class MapsActivity extends FragmentActivity implements
         txtOutput = (TextView) findViewById(R.id.txtOutput);
         latitude = (TextView) findViewById(R.id.latitude);
         longitude = (TextView) findViewById(R.id.longitude);
-    }
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            return;
+        }
+    }
 
     /**
      * Manipulates the map once available.
@@ -89,9 +101,20 @@ public class MapsActivity extends FragmentActivity implements
         mLocationRequest = LocationRequest.create(); // Another way to write a new object
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(2 * 1000); // Always write in milliseconds
+        requestLocationUpdates();
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+    public void requestLocationUpdates()
+    {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_FINE_LOCATION);
+            } else
+            {
+                permissionIsGranted = true;
+            }
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -129,9 +152,10 @@ public class MapsActivity extends FragmentActivity implements
         double tempLat = location.getLatitude();
         double tempLong = location.getLongitude();
 
-         // Make a marker
-
-        LatLng latlng = new LatLng(tempLat,tempLong);
+        // Make a marker
+        LatLng latlng = new LatLng(tempLat, tempLong);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+        /*
         MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
         markerOptions.position(latlng);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
@@ -139,13 +163,14 @@ public class MapsActivity extends FragmentActivity implements
         curPosMarker = mMap.addMarker(markerOptions); // Add marker with markerOptions options
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
 
-        if (curPosMarker != null)
+        if (curPosMarker != null) // Keep only one marker for an object and delete past ones
         {
             mMap.clear();
         }
 
         curPosMarker = mMap.addMarker(markerOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+        */
     }
 
     @Override
@@ -155,10 +180,55 @@ public class MapsActivity extends FragmentActivity implements
         mGoogleApiClient.connect();
     }
 
+    protected void onResume()
+    {
+        super.onResume();
+        if (permissionIsGranted)
+        {
+            if (mGoogleApiClient.isConnected())
+            {
+                requestLocationUpdates();
+            }
+        }
+    }
+
+    protected void onPause()
+    {
+        super.onPause();
+        if (permissionIsGranted)
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
     @Override
     protected void onStop()
     {
-        mGoogleApiClient.disconnect();
         super.onStop();
+        if (permissionIsGranted)
+            mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode)
+        {
+            case MY_PERMISSION_REQUEST_FINE_LOCATION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    // Permission granted
+                    permissionIsGranted = true;
+                }
+                else
+                {
+                    // permission denied
+                    permissionIsGranted = false;
+                    Toast.makeText(getApplicationContext(), "This app requires location permission to be granted", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case MY_PERMISSION_REQUEST_COARSE_LOCATION:
+                break;
+        }
     }
 }
