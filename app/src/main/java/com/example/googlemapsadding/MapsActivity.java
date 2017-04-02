@@ -38,7 +38,7 @@ public class MapsActivity extends FragmentActivity implements
 {
 
     private GoogleMap mMap;
-    private final String LOG_TAG = "LaurenceTestApp";
+    private final String LOG_TAG = "CometTracker";
     private TextView txtOutput;
     private TextView latitude;
     private TextView longitude;
@@ -207,6 +207,7 @@ public class MapsActivity extends FragmentActivity implements
             mGoogleApiClient.disconnect();
     }
 
+    // Check if user granted required permissions and proceed
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
