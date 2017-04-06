@@ -29,6 +29,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MapsActivity extends FragmentActivity implements
         OnMapReadyCallback,
@@ -48,6 +50,13 @@ public class MapsActivity extends FragmentActivity implements
     private static final int MY_PERMISSION_REQUEST_COARSE_LOCATION = 100;
     private boolean permissionIsGranted = false;
     Marker curPosMarker;
+
+    // Firebase Stuff
+    DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
+    DatabaseReference lat1 = mRootRef.child("ID").child("1").child("Position").child("Lat");
+    DatabaseReference long1 = mRootRef.child("ID").child("1").child("Position").child("Long");
+
+    // Firebase Stuff
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -154,7 +163,12 @@ public class MapsActivity extends FragmentActivity implements
 
         // Make a marker
         LatLng latlng = new LatLng(tempLat, tempLong);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+        // mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
+
+        // Send Location data to firebase
+        lat1.setValue(tempLat);
+        long1.setValue(tempLong);
+
         /*
         MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
         markerOptions.position(latlng);

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Auxil</string>
-    <string name="title_activity_maps">Auxil</string>
+    <string name="app_name">Comet Tracker</string>
+    <string name="title_activity_maps">Comet Tracker</string>
     <string name="title_activity_settings">Settings</string>
 </resources>
