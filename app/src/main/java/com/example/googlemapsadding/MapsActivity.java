@@ -1,5 +1,8 @@
 package com.example.googlemapsadding;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -63,6 +66,19 @@ public class MapsActivity extends FragmentActivity implements
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+
+        SharedPreferences sharedPref = getSharedPreferences("loginBool", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPref.getBoolean("TrueOrFalse", false);
+
+        //READ if LoggedIN
+
+        if(!isLoggedIn)
+        {
+            Intent loginIntent = new Intent(this, LoginPageActivity.class);
+            startActivity(loginIntent);
+        }
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -96,6 +112,7 @@ public class MapsActivity extends FragmentActivity implements
     public void onMapReady(GoogleMap googleMap)
     {
         mMap = googleMap;
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(14));
 
         /* Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(10,19);
@@ -109,7 +126,7 @@ public class MapsActivity extends FragmentActivity implements
     {
         mLocationRequest = LocationRequest.create(); // Another way to write a new object
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(2 * 1000); // Always write in milliseconds
+        mLocationRequest.setInterval(3 * 1000); // Always write in milliseconds
         requestLocationUpdates();
     }
 
@@ -163,6 +180,8 @@ public class MapsActivity extends FragmentActivity implements
 
         // Make a marker
         LatLng latlng = new LatLng(tempLat, tempLong);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
+
         // mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
 
         // Send Location data to firebase
