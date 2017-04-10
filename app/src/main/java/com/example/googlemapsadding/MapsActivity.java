@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import android.provider.ContactsContract;
+import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -32,8 +34,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements
         OnMapReadyCallback,
@@ -53,11 +60,12 @@ public class MapsActivity extends FragmentActivity implements
     private static final int MY_PERMISSION_REQUEST_COARSE_LOCATION = 100;
     private boolean permissionIsGranted = false;
     Marker curPosMarker;
+    public String mUid;
 
-    // Firebase Stuff
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
-    DatabaseReference lat1 = mRootRef.child("ID").child("1").child("Position").child("Lat");
-    DatabaseReference long1 = mRootRef.child("ID").child("1").child("Position").child("Long");
+
+    // DatabaseReference lat1 = mRootRef.child("ID").child("1").child("Position").child("Lat");
+    // DatabaseReference long1 = mRootRef.child("ID").child("1").child("Position").child("Long");
 
     // Firebase Stuff
 
@@ -66,7 +74,6 @@ public class MapsActivity extends FragmentActivity implements
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
 
         SharedPreferences sharedPref = getSharedPreferences("loginBool", Context.MODE_PRIVATE);
         boolean isLoggedIn = sharedPref.getBoolean("TrueOrFalse", false);
@@ -78,6 +85,16 @@ public class MapsActivity extends FragmentActivity implements
             Intent loginIntent = new Intent(this, LoginPageActivity.class);
             startActivity(loginIntent);
         }
+
+        /* Firebase Stuff
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        String userID = user.getUid();
+        DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference("Users").child(userID);
+
+        */
+
+        // Firebase Stuff
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -113,6 +130,10 @@ public class MapsActivity extends FragmentActivity implements
     {
         mMap = googleMap;
         mMap.moveCamera(CameraUpdateFactory.zoomTo(14));
+
+        SharedPreferences uidPref = getSharedPreferences("userUid", Context.MODE_PRIVATE);
+        String tempUid = uidPref.getString("Uid", "");
+        this.mUid = tempUid;
 
         /* Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(10,19);
@@ -185,8 +206,16 @@ public class MapsActivity extends FragmentActivity implements
         // mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
 
         // Send Location data to firebase
-        lat1.setValue(tempLat);
-        long1.setValue(tempLong);
+        String stringLat = Double.toString(tempLat);
+        String stringLong = Double.toString(tempLong);
+
+        // Writing to the database
+        mRootRef.child("Users").child(mUid).child("latitude").setValue(stringLat);
+        mRootRef.child("Users").child(mUid).child("longitude").setValue(stringLong);
+
+        // Read Data from the database
+
+        
 
         /*
         MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes

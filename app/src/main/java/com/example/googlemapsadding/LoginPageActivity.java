@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
@@ -39,20 +40,43 @@ public class LoginPageActivity extends Activity implements View.OnClickListener
     private EditText edEmail;
     private EditText edPassword;
 
-    private ProgressDialog progressdialog;
+    private ProgressDialog registerDialog;
+    private ProgressDialog signInDialog;
+
+    DatabaseReference mUserRef = FirebaseDatabase.getInstance().getReference("Users");
 
     public boolean isLoggedIn ;
 
     private FirebaseAuth firebaseauth;
+    private FirebaseAuth.AuthStateListener authListener;
 
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_page);
 
+        authListener = new FirebaseAuth.AuthStateListener()
+        {
+
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null)
+                {
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                }
+                else
+                {
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+            }
+        };
+
         firebaseauth = FirebaseAuth.getInstance();
 
-        progressdialog = new ProgressDialog(this);
+        registerDialog = new ProgressDialog(this);
+        signInDialog = new ProgressDialog(this);
 
         registerButton = (Button)findViewById(R.id.btnRegister);
 
@@ -81,8 +105,8 @@ public class LoginPageActivity extends Activity implements View.OnClickListener
             return;
         }
 
-         progressdialog.setMessage("Registering User...");
-         progressdialog.show();
+         registerDialog.setMessage("Registering User...");
+         registerDialog.show();
 
         firebaseauth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
@@ -98,6 +122,8 @@ public class LoginPageActivity extends Activity implements View.OnClickListener
                             editor.putBoolean("TrueOrFalse", true); // Set TrueOrFalse to true if registration is successful
                             editor.commit();
                              // Shared Preferences --- Setting boolean value */
+                            putUser();
+                            signInUser();
 
                             Toast.makeText(LoginPageActivity.this, "Registered Succesfully", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginPageActivity.this, MapsActivity.class);
@@ -120,5 +146,57 @@ public class LoginPageActivity extends Activity implements View.OnClickListener
         }
     }
 
+    public void putUser() // Write registered user into the database
+    {
+        FirebaseUser user = firebaseauth.getCurrentUser();
+        String uid = user.getUid();
 
+        UserInfo userInfo = new UserInfo("TempLat", "TempLong", user.getUid());
+        mUserRef.child(uid).setValue(userInfo);
+
+        SharedPreferences sharedPref = getSharedPreferences("userUid", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("Uid", uid);
+        editor.apply();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        firebaseauth.addAuthStateListener(authListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (authListener != null) {
+            firebaseauth.removeAuthStateListener(authListener);
+        }
+    }
+
+    public void signInUser()
+    {
+        String email = edEmail.getText().toString().trim();
+        String password = edPassword.getText().toString().trim();
+
+        signInDialog.setMessage("Signing in user...");
+        signInDialog.show();
+
+        firebaseauth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
+                {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task)
+                    {
+                        Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
+
+                        if (!task.isSuccessful())
+                        {
+                            Log.w(TAG, "signInWithEmail:failed", task.getException());
+                            Toast.makeText(LoginPageActivity.this, "Sign in failed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
 }
