@@ -36,8 +36,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +55,6 @@ public class MapsActivity extends FragmentActivity implements
 
     private GoogleMap mMap;
     private final String LOG_TAG = "CometTracker";
-    private TextView txtOutput;
-    private TextView latitude;
-    private TextView longitude;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private static final int MY_PERMISSION_REQUEST_FINE_LOCATION = 101;
@@ -61,6 +62,8 @@ public class MapsActivity extends FragmentActivity implements
     private boolean permissionIsGranted = false;
     Marker curPosMarker;
     public String mUid;
+    private double otherLat;
+    private double otherLong;
 
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
 
@@ -106,14 +109,45 @@ public class MapsActivity extends FragmentActivity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-        txtOutput = (TextView) findViewById(R.id.txtOutput);
-        latitude = (TextView) findViewById(R.id.latitude);
-        longitude = (TextView) findViewById(R.id.longitude);
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
             return;
         }
+
+        mRootRef.child("Users").orderByChild("Latitude").addChildEventListener(new ChildEventListener()
+        {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s)
+            {
+                UserInfo info = dataSnapshot.getValue(UserInfo.class);
+                Toast.makeText(MapsActivity.this, dataSnapshot.getKey() + "'s latitude is " + info.latitude, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s)
+            {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot)
+            {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s)
+            {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
     }
 
     /**
@@ -129,7 +163,6 @@ public class MapsActivity extends FragmentActivity implements
     public void onMapReady(GoogleMap googleMap)
     {
         mMap = googleMap;
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(14));
 
         SharedPreferences uidPref = getSharedPreferences("userUid", Context.MODE_PRIVATE);
         String tempUid = uidPref.getString("Uid", "");
@@ -140,6 +173,7 @@ public class MapsActivity extends FragmentActivity implements
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         */
+
     }
 
     @Override
@@ -199,23 +233,70 @@ public class MapsActivity extends FragmentActivity implements
         double tempLat = location.getLatitude();
         double tempLong = location.getLongitude();
 
-        // Make a marker
-        LatLng latlng = new LatLng(tempLat, tempLong);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latlng));
-
         // mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
 
         // Send Location data to firebase
         String stringLat = Double.toString(tempLat);
         String stringLong = Double.toString(tempLong);
-
-        // Writing to the database
         mRootRef.child("Users").child(mUid).child("latitude").setValue(stringLat);
         mRootRef.child("Users").child(mUid).child("longitude").setValue(stringLong);
 
         // Read Data from the database
 
-        
+        DatabaseReference otherLatRef = mRootRef.child("Users").child("mtiP2QAIjiSj888TdmzJhUAIZm22").child("latitude");
+        DatabaseReference otherLongRef = mRootRef.child("Users").child("mtiP2QAIjiSj888TdmzJhUAIZm22").child("longitude");
+
+        otherLatRef.addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                String dbstringLat = dataSnapshot.getValue(String.class);
+                double tempLat = Double.parseDouble(dbstringLat);
+                otherLat = tempLat;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
+
+        otherLongRef.addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                String dbstringLong = dataSnapshot.getValue(String.class);
+                double tempLong = Double.parseDouble(dbstringLong);
+                otherLong = tempLong;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError)
+            {
+
+            }
+        });
+
+        LatLng latlng = new LatLng(otherLat, otherLong);
+
+        MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
+        markerOptions.position(latlng);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        markerOptions.title("Akshay Position");
+        curPosMarker = mMap.addMarker(markerOptions); // Add marker with markerOptions options
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latlng));
+        CameraUpdateFactory.zoomTo(14);
+
+
+        if (curPosMarker != null) // Keep only one marker for an object and delete past ones
+        {
+            mMap.clear();
+        }
+
+        curPosMarker = mMap.addMarker(markerOptions);
 
         /*
         MarkerOptions markerOptions = new MarkerOptions(); // MarkerOptions object to hold marker attributes
